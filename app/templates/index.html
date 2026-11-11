@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Overview · TaskFlow{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><div class="eyebrow">TUESDAY, YOUR DAY YOUR WAY</div><h1>Good things happen<br><span>one task at a time.</span></h1><p class="subtitle">Keep your priorities clear and make progress that matters.</p></div>
+  <a class="primary-btn" href="/tasks/new"><span>＋</span> Create new task</a>
+</section>
+
+<section class="stats-grid">
+  <article class="stat-card stat-dark"><div class="stat-top"><span>Total tasks</span><span class="stat-symbol">▤</span></div><div class="stat-number">{{ total }}</div><div class="stat-note">Across your workspace</div><div class="stat-decoration">✳</div></article>
+  <article class="stat-card"><div class="stat-top"><span>In progress</span><span class="stat-symbol blue">◷</span></div><div class="stat-number">{{ pending_count }}</div><div class="stat-note">Tasks waiting for you</div><div class="mini-bar"><span style="width: {{ (pending_count / total * 100) if total else 0 }}%"></span></div></article>
+  <article class="stat-card"><div class="stat-top"><span>Completed</span><span class="stat-symbol green">✓</span></div><div class="stat-number">{{ completed_count }}</div><div class="stat-note">Look at you go!</div><div class="mini-bar green-bar"><span style="width: {{ completion_rate }}%"></span></div></article>
+  <article class="stat-card"><div class="stat-top"><span>Completion rate</span><span class="stat-symbol purple">↗</span></div><div class="stat-number">{{ completion_rate }}<small>%</small></div><div class="stat-note">Your consistency so far</div><div class="mini-bar purple-bar"><span style="width: {{ completion_rate }}%"></span></div></article>
+</section>
+
+<section class="task-section">
+  <div class="section-heading"><div><div class="eyebrow">YOUR WORKLOAD</div><h2>Tasks <span class="count-badge">{{ tasks|length }}</span></h2></div>
+    <form class="search-form" action="/" method="get">
+      <input type="hidden" name="status" value="{{ status }}">
+      <span>⌕</span><input type="search" name="q" placeholder="Search tasks..." value="{{ q }}">
+    </form>
+  </div>
+  <div class="filter-row">
+    <div class="filter-tabs">
+      <a class="{{ 'selected' if status == 'all' else '' }}" href="/?status=all">All tasks</a>
+      <a class="{{ 'selected' if status == 'pending' else '' }}" href="/?status=pending">In progress</a>
+      <a class="{{ 'selected' if status == 'completed' else '' }}" href="/?status=completed">Completed</a>
+    </div>
+    <span class="sort-label">Recently added ↓</span>
+  </div>
+
+  {% if tasks %}
+  <div class="task-list">
+    {% for task in tasks %}
+    <article class="task-card {{ 'is-complete' if task.completed else '' }}">
+      <form action="/tasks/{{ task.id }}/toggle" method="post" class="check-form">
+        <button class="check-button {{ 'checked' if task.completed else '' }}" aria-label="Toggle completion" title="Mark {{ 'as pending' if task.completed else 'as complete' }}">{{ '✓' if task.completed else '' }}</button>
+      </form>
+      <div class="task-main">
+        <div class="task-title-row"><h3>{{ task.title }}</h3><span class="priority priority-{{ task.priority|lower }}">{{ task.priority }}</span></div>
+        {% if task.description %}<p>{{ task.description }}</p>{% else %}<p class="muted-description">No description added</p>{% endif %}
+        <div class="task-meta"><span>▦ &nbsp;{{ task.due_date if task.due_date else 'No due date' }}</span><span>·</span><span>{{ 'Completed' if task.completed else 'In progress' }}</span></div>
+      </div>
+      <div class="task-actions"><a href="/tasks/{{ task.id }}/edit" title="Edit task">✎</a><form action="/tasks/{{ task.id }}/delete" method="post" onsubmit="return confirm('Delete this task permanently?')"><button title="Delete task" aria-label="Delete task">⌫</button></form></div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-art">✓</div><h3>{% if q %}No matching tasks{% else %}Nothing on your list yet{% endif %}</h3><p>{% if q %}Try another search term or clear your search.{% else %}A clear mind starts with a clear plan. Add your first task to get going.{% endif %}</p><a class="primary-btn" href="/tasks/new">＋ Add your first task</a></div>
+  {% endif %}
+</section>
+{% endblock %}
